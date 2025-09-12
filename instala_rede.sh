@@ -74,6 +74,7 @@ EOF
 
 chown "$USER_NAME:$USER_NAME" "$REDE/.directory"
 
+
 # Copia pasta script (do local atual) para $USER_HOME/script
 if [[ -d "./script" ]]; then
   rsync -a ./script/ "$USER_HOME/script/"
@@ -115,5 +116,34 @@ EOF
 
 chmod +x "$REDE/"*.desktop
 chown "$USER_NAME:$USER_NAME" "$REDE/"*.desktop
+
+
+# -----------------------------
+# Cria atalhos na pasta $HOME/.trinity/share/apps/konqueror/servicemenus/
+# -----------------------------
+
+cat > "$USER_HOME/.trinity/share/apps/konqueror/servicemenus/compartilhar_smb.desktop" <<EOF
+[Desktop Entry]
+X-TDE-ServiceTypes=inode/directory
+X-TDE-Priority=TopLevel
+Actions=CompartilharSamba
+
+[Desktop Action CompartilharSamba]
+Name=Compartilhar via Samba
+Icon=network-workgroup
+Exec=konsole -e sudo $USER_HOME/script/compartilha_smb.sh "%f"
+EOF
+
+cat > "$USER_HOME/.trinity/share/apps/konqueror/servicemenus/remove_smb.desktop" <<EOF
+[Desktop Entry]
+X-TDE-ServiceTypes=inode/directory
+X-TDE-Priority=TopLevel
+Actions=removeShare
+
+[Desktop Action removeShare]
+Name=Remover compartilhamento Samba
+Icon=network-workgroup
+Exec=konsole -e sudo $USER_HOME/script/remove_smb.sh "%f"
+EOF
 
 zenity --info --text="Pasta Rede criada em: $REDE\nAtalhos prontos.\nDependências instaladas." --width=400
