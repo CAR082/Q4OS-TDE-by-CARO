@@ -66,6 +66,14 @@ REDE="$DESKTOP_PATH/Rede"
 mkdir -p "$REDE"
 chown "$USER_NAME:$USER_NAME" "$REDE"
 
+# Cria o arquivo .directory para personalizar o ícone no TDE da pasta chamada Rede
+cat > "$REDE/.directory" <<EOF
+[Desktop Entry]
+Icon=network-workgroup
+EOF
+
+chown "$USER_NAME:$USER_NAME" "$REDE/.directory"
+
 # Copia pasta script (do local atual) para $USER_HOME/script
 if [[ -d "./script" ]]; then
   rsync -a ./script/ "$USER_HOME/script/"
