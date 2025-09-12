@@ -99,7 +99,7 @@ cat > "$REDE/Montar Novo Compartilhamento.desktop" <<EOF
 [Desktop Entry]
 Name=Montar Novo Compartilhamento
 Type=Application
-Exec=sudo $USER_HOME/script/monta_smb.sh
+Exec=konsole -e sudo $USER_HOME/script/monta_smb.sh
 Icon=folder-remote
 Terminal=false
 EOF
@@ -108,7 +108,7 @@ cat > "$REDE/Remover Compartilhamento.desktop" <<EOF
 [Desktop Entry]
 Name=Remover Compartilhamento
 Type=Application
-Exec=sudo  $USER_HOME/script/desmontar.sh
+Exec=konsole -e sudo  $USER_HOME/script/desmontar.sh
 Icon=folder-remote
 Terminal=false
 EOF
