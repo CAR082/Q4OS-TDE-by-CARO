@@ -11,8 +11,13 @@ fi
 USER_NAME="${SUDO_USER:-$USER}"
 USER_HOME=$(eval echo "~$USER_NAME")
 
-# Captura pontos de montagem CIFS reais
-mapfile -t MOUNTED < <(mount | grep "type cifs" | awk '{print $3}')
+# Captura pontos de montagem CIFS reais (com espaços)
+mapfile -t MOUNTED < <(mount -t cifs | while read -r line; do
+    if [[ "$line" =~ on\ (.*)\ type\ cifs ]]; then
+        echo "${BASH_REMATCH[1]}"
+    fi
+done)
+
 [[ ${#MOUNTED[@]} -eq 0 ]] && { zenity --info --text="Nenhum compartilhamento CIFS montado encontrado." --width=300; exit 0; }
 
 # Monta lista para Zenity
@@ -28,17 +33,18 @@ CHOICE=$(zenity --list --title="Compartilhamentos montados" --text="Escolha o co
 INDEX=$((CHOICE-1))
 MOUNT_POINT="${MOUNTED[$INDEX]}"
 
-# Descobre host/share a partir do /etc/mtab
-HOST_SHARE=$(grep " $MOUNT_POINT " /etc/mtab | awk '{print $1}' | sed 's|^//||')
+# Descobre host/share a partir do ponto de montagem
+HOST_SHARE=$(mount -t cifs | grep -F " on $MOUNT_POINT " | awk '{print $1}' | head -n1 | sed 's|^//||')
 HOST=$(echo "$HOST_SHARE" | cut -d'/' -f1)
 SHARE=$(echo "$HOST_SHARE" | cut -d'/' -f2-)
 
-# Desmonta
-umount "$MOUNT_POINT" 2>/tmp/umount_error || { zenity --error --text="Falha ao desmontar. Veja detalhes em /tmp/umount_error" --width=400; exit 1; }
+# Desmonta (força se necessário)
+umount -f "$MOUNT_POINT" 2>/tmp/umount_error || { zenity --error --text="Falha ao desmontar. Veja detalhes em /tmp/umount_error" --width=400; exit 1; }
 
-# Remove entrada do fstab
-ENTRY=$(grep " $MOUNT_POINT " /etc/fstab || true)
-[[ -n "$ENTRY" ]] && sed -i "\|$ENTRY|d" /etc/fstab
+# Remove entrada do fstab corretamente, tratando espaços
+if grep -Fq "$MOUNT_POINT" /etc/fstab; then
+  sed -i "\|$MOUNT_POINT|d" /etc/fstab
+fi
 
 # Remove diretório se estiver vazio
 rmdir "$MOUNT_POINT" 2>/dev/null || true
@@ -51,4 +57,4 @@ if command -v gvfs-mount &>/dev/null; then
   gvfs-mount -u "smb://$HOST/$SHARE" 2>/dev/null || true
 fi
 
-zenity --info --text="Compartilhamento desmontado com sucesso: $MOUNT_POINT (//$HOST/$SHARE)" --width=450
+zenity --info --text="Compartilhamento desmontado com sucesso:\n$MOUNT_POINT\n(//$HOST/$SHARE)" --width=450
