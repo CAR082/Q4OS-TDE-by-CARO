@@ -87,7 +87,7 @@ chmod -R u+rx "$USER_HOME/script"
 # -----------------------------
 # Instala dependências
 # -----------------------------
-DEPS="zenity smbclient nmap cifs-utils"
+DEPS="zenity smbclient nmap cifs-utils wsdd2"
 apt update
 apt install -y $DEPS
 
